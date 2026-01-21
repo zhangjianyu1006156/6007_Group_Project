@@ -1,0 +1,2 @@
+Merchant_ID,Merchant_Name,UEN,Bank_Name,Bank_Code,Branch_Code,Account_Number,Account_Holder_Name,Registration_Date,Status
+M0802,ABC Minimart,201234567A,DBS Bank Ltd,7171,001,123-456-789,ABC Minimart Pte Ltd,2026-01-18,Active
