@@ -4,12 +4,13 @@ from dataclasses import dataclass, asdict
 class Household:
     """
     Household domain model.
-    Encapsulates the wallet data.
+    Encapsulates the wallet data and location info.
     """
     household_id: str
-    address: str
+    postal_code: str
+    unit_number: str
     balance: int
-    vouchers: dict[str, int]  # e.g. {"2": 80, "5": 32, "10": 45}
+    vouchers: dict[str, int]
     link: str
 
     def to_dict(self) -> dict:
@@ -20,8 +21,9 @@ class Household:
     def from_dict(data: dict) -> "Household":
         """Reconstruct object from dictionary."""
         return Household(
-            household_id=data.get("household_id") or data.get("id"), # Handle potential key diffs
-            address=data["address"],
+            household_id=data.get("household_id") or data.get("id"),
+            postal_code=data.get("postal_code", ""),
+            unit_number=data.get("unit_number", ""),
             balance=data["balance"],
             vouchers=data["vouchers"],
             link=data["link"]
