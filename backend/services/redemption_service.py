@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 22 13:45:54 2026
-
-@author: richardfeng
-"""
-
-# services/redemption_service.py
 import random
 from datetime import datetime, timedelta
 
