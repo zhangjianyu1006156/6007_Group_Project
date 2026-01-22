@@ -52,7 +52,7 @@ def create_app() -> Flask:
     def health():
         return jsonify({"status": "ok"})
 
-    # --- 1. MERCHANT REGISTRATION ---
+    # --- 1. MERCHANT REGISTRATION & VERIFICATION ---
     @app.post("/api/merchants")
     def register_merchant():
         payload = request.get_json(silent=True) or {}
@@ -62,11 +62,19 @@ def create_app() -> Flask:
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
+    @app.get("/api/merchants/<merchant_id>")
+    def check_merchant(merchant_id):
+        merchant = merchant_service.get_merchant(merchant_id)
+        if merchant:
+            return jsonify({"status": "exists", "name": merchant.merchant_name})
+        return jsonify({"error": "Merchant not found"}), 404
+
     # --- 2. HOUSEHOLD REGISTRATION ---
     @app.post("/api/households")
     def register_household():
         payload = request.get_json(silent=True) or {}
         
+        # Get all fields
         h_id = payload.get("household_id")
         postal = payload.get("postal_code")
         unit = payload.get("unit_number")
