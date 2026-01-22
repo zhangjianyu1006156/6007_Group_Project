@@ -31,34 +31,19 @@ class MerchantService:
         Generate a unique merchant id.
         Format: M + 4 digits (e.g., M0001).
         """
-        # Try a few times; collision probability is low, but we handle it safely.
         for _ in range(50):
             candidate = f"M{random.randint(0, 9999):04d}"
             if candidate not in self.merchants_by_id:
                 return candidate
-        # Fallback in rare case: expand digits
-        while True:
-            candidate = f"M{random.randint(0, 999999):06d}"
-            if candidate not in self.merchants_by_id:
-                return candidate
+        raise ValueError("Unable to generate unique Merchant ID after 50 retries.")
 
     def register_merchant(self, payload: dict) -> Merchant:
         """
-        Register a merchant:
-        - Validate required fields
-        - Validate bank_code + branch_code using BankCode.csv
-        - Enforce uniqueness (ID always unique; optionally UEN unique)
-        - Persist to Merchant.txt and update in-memory indexes
+        Register a new merchant.
         """
-        # 1) Required fields
         required = [
-            "merchant_name",
-            "uen",
-            "bank_name",
-            "bank_code",
-            "branch_code",
-            "account_number",
-            "account_holder_name",
+            "merchant_name", "uen", "bank_name", "bank_code",
+            "branch_code", "account_number", "account_holder_name",
         ]
         for key in required:
             if not str(payload.get(key, "")).strip():
@@ -68,15 +53,12 @@ class MerchantService:
         bank_code = payload["bank_code"].strip()
         branch_code = payload["branch_code"].strip()
 
-        # 2) Optional uniqueness rule: UEN cannot be registered twice
         if uen in self.merchants_by_uen:
             raise ValueError("UEN already registered.")
 
-        # 3) Bank/branch validation 
         if not self.bank_store.is_valid(bank_code, branch_code):
             raise ValueError("Invalid bank_code / branch_code based on BankCode.csv.")
 
-        # 4) Create merchant
         merchant_id = self._generate_merchant_id()
         merchant = Merchant(
             merchant_id=merchant_id,
@@ -91,8 +73,12 @@ class MerchantService:
             status=payload.get("status", "Active").strip() or "Active",
         )
 
-        # 5) Persist + update memory
         self.merchant_store.append(merchant)
         self.merchants_by_id[merchant_id] = merchant
         self.merchants_by_uen[uen] = merchant
+
         return merchant
+
+    def get_merchant(self, merchant_id: str) -> Merchant:
+        """Retrieve a merchant by ID."""
+        return self.merchants_by_id.get(merchant_id)
