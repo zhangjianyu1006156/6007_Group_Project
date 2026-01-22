@@ -1,5 +1,6 @@
 import flet as ft
 import requests
+import re
 
 # Configuration
 API_BASE_URL = "http://127.0.0.1:5000/api"
@@ -37,7 +38,6 @@ def main(page: ft.Page):
 
     def api_verify_merchant(m_id):
         try:
-            # Check if merchant exists
             resp = requests.get(f"{API_BASE_URL}/merchants/{m_id}")
             if resp.status_code == 200:
                 return True, resp.json()
@@ -107,9 +107,17 @@ def main(page: ft.Page):
     def show_login():
         page.clean()
 
+        h_error_text = ft.Text("", color="red", size=14)
+        m_error_text = ft.Text("", color="red", size=14)
+
         def login_household(e):
+            h_error_text.value = "" 
             h_id = h_id_input.value
-            if not h_id: return
+            if not h_id:
+                h_error_text.value = "Please enter a Household ID"
+                page.update()
+                return
+            
             success, data = api_check_balance(h_id)
             if success:
                 state["household_id"] = h_id
@@ -118,23 +126,23 @@ def main(page: ft.Page):
                 state["selected"] = {}
                 show_dashboard()
             else:
-                # Show Error Message
-                page.snack_bar = ft.SnackBar(ft.Text("Invalid Household ID. Please register first."), bgcolor=ft.Colors.RED_400)
-                page.snack_bar.open = True
+                h_error_text.value = "Invalid Household ID."
                 page.update()
 
         def login_merchant(e):
+            m_error_text.value = ""
             m_id = m_id_input.value
-            if not m_id: return
+            if not m_id:
+                m_error_text.value = "Please enter a Merchant ID"
+                page.update()
+                return
             
-            # Verify Merchant Exists
             success, data = api_verify_merchant(m_id)
             if success:
                 state["merchant_id"] = m_id
                 show_merchant_view()
             else:
-                page.snack_bar = ft.SnackBar(ft.Text("Invalid Merchant ID."), bgcolor=ft.Colors.RED_400)
-                page.snack_bar.open = True
+                m_error_text.value = "Invalid Merchant ID."
                 page.update()
 
         h_id_input = ft.TextField(label="Household ID", hint_text="Enter ID (e.g. H123...)")
@@ -142,23 +150,25 @@ def main(page: ft.Page):
 
         page.add(
             ft.Column([
-                ft.Text("CDC Voucher App", size=30, weight="bold", color="teal"),
+                ft.Row([ft.Text("CDC Voucher App", size=30, weight="bold", color="teal")], alignment="center"),
                 ft.Divider(),
                 
                 # Household Section
                 ft.Text("Residents", size=20, weight="bold"),
                 h_id_input,
-                ft.ElevatedButton("Login", on_click=login_household, width=360),
-                ft.TextButton("No Account? Register Household", on_click=lambda e: show_register_household()),
+                ft.Row([ft.ElevatedButton("Login", on_click=login_household, width=360)], alignment="center"),
+                ft.Row([ft.TextButton("No Account? Register Household", on_click=lambda e: show_register_household())], alignment="center"),
+                ft.Row([h_error_text], alignment="center"),
                 
                 ft.Divider(),
                 
                 # Merchant Section
                 ft.Text("Merchants", size=20, weight="bold"),
                 m_id_input,
-                ft.ElevatedButton("Login", on_click=login_merchant, width=360),
-                ft.TextButton("New Business? Register Merchant", on_click=lambda e: show_register_merchant()),
-            ], spacing=15)
+                ft.Row([ft.ElevatedButton("Login", on_click=login_merchant, width=360)], alignment="center"),
+                ft.Row([ft.TextButton("New Business? Register Merchant", on_click=lambda e: show_register_merchant())], alignment="center"),
+                ft.Row([m_error_text], alignment="center"),
+            ], spacing=15, horizontal_alignment="stretch")
         )
         page.update()
 
@@ -173,6 +183,12 @@ def main(page: ft.Page):
         result_display = ft.Column()
 
         def handle_submit(e):
+            if not re.match(r"^H\d+$", id_field.value):
+                result_display.controls.clear()
+                result_display.controls.append(ft.Text("Invalid Format. ID must start with 'H' followed by numbers (e.g. H123456)", color="red"))
+                page.update()
+                return
+
             success, h_id, link = api_register_household(
                 id_field.value,
                 postal_field.value,
@@ -208,15 +224,19 @@ def main(page: ft.Page):
 
         page.add(
             ft.Column([
-                ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda e: show_login()),
+                # Back Button in a Row to prevent it from stretching
+                ft.Row([ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda e: show_login())], alignment="start"),
+                
                 ft.Text("Register Household", size=25, weight="bold"),
                 ft.Text("Enter your details to claim vouchers."),
+                
                 id_field,
                 postal_field,
                 unit_field,
-                ft.ElevatedButton("Register Now", on_click=handle_submit, bgcolor="teal", color="white"),
+                
+                ft.Row([ft.ElevatedButton("Register Now", on_click=handle_submit, bgcolor="teal", color="white")], alignment="center"),
                 result_display
-            ])
+            ], horizontal_alignment="stretch")
         )
         page.update()
 
@@ -231,6 +251,13 @@ def main(page: ft.Page):
             ft.dropdown.Option("DBS Bank Ltd"),
             ft.dropdown.Option("OCBC Bank"),
             ft.dropdown.Option("UOB Bank"),
+            ft.dropdown.Option("Maybank Singapore"),
+            ft.dropdown.Option("Standard Chartered Bank"),
+            ft.dropdown.Option("HSBC Singapore"),
+            ft.dropdown.Option("POSB Bank"),
+            ft.dropdown.Option("Citibank Singapore"),
+            ft.dropdown.Option("RHB Bank Berhad"),
+            ft.dropdown.Option("Bank of China"),
         ])
         
         bank_code = ft.TextField(label="Bank Code", hint_text="e.g. 7171", expand=True)
@@ -273,14 +300,18 @@ def main(page: ft.Page):
 
         page.add(
             ft.Column([
-                ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda e: show_login()),
+                # Back Button in a Row to prevent it from stretching
+                ft.Row([ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda e: show_login())], alignment="start"),
+                
                 ft.Text("Merchant Sign-Up", size=25, weight="bold"),
+                
                 name, uen, bank_name,
                 ft.Row([bank_code, branch_code]),
                 acc_num, holder,
-                ft.ElevatedButton("Submit Registration", on_click=handle_submit, bgcolor="blue", color="white"),
+                
+                ft.Row([ft.ElevatedButton("Register Now", on_click=handle_submit, bgcolor="teal", color="white")], alignment="center"),
                 result_display
-            ])
+            ], horizontal_alignment="stretch")
         )
         page.update()
 
@@ -346,6 +377,21 @@ def main(page: ft.Page):
                 )
 
         total_text = ft.Text("Total Selected: $0", size=20, weight="bold", color="green")
+        
+        wallet_box = ft.Row([
+            ft.Container(
+                content=ft.Column([
+                    ft.Text("Current Balance", color="white"),
+                    ft.Text(f"${state['balance']}", size=40, weight="bold", color="white"),
+                    ft.Text(f"ID: {state['household_id']}", size=12, color="white70")
+                ]),
+                bgcolor="teal", padding=20, border_radius=10, width=400
+            )
+        ], alignment="center")
+
+        generate_btn = ft.Row([
+            ft.ElevatedButton("Generate Code", on_click=handle_generate_code, width=400, height=50)
+        ], alignment="center")
 
         page.add(
             ft.Column([
@@ -353,21 +399,19 @@ def main(page: ft.Page):
                     ft.IconButton(ft.Icons.LOGOUT, on_click=lambda e: show_login()),
                     ft.Text("My Wallet", size=20, weight="bold"),
                 ], alignment="spaceBetween"),
-                ft.Container(
-                    content=ft.Column([
-                        ft.Text("Current Balance", color="white"),
-                        ft.Text(f"${state['balance']}", size=40, weight="bold", color="white"),
-                        ft.Text(f"ID: {state['household_id']}", size=12, color="white70")
-                    ]),
-                    bgcolor="teal", padding=20, border_radius=10, width=400
-                ),
+                
+                wallet_box,
+                
                 ft.Divider(),
+                
                 ft.Text("Select Vouchers:"),
                 ft.Column(voucher_controls),
+                
                 ft.Divider(),
+                
                 ft.Row([total_text], alignment="center"),
-                ft.ElevatedButton("Generate Code", on_click=handle_generate_code, width=400, height=50)
-            ])
+                generate_btn
+            ], horizontal_alignment="stretch")
         )
         page.update()
 
@@ -406,24 +450,30 @@ def main(page: ft.Page):
                 result_text.color = "red"
             page.update()
 
+        action_area = ft.Column([
+            ft.Text("Scan Code", size=20),
+            code_input,
+            ft.ElevatedButton("Redeem", on_click=handle_redeem, width=400, height=50, bgcolor="orange", color="white"),
+            ft.Container(
+                content=result_text,
+                padding=20,
+                bgcolor=ft.Colors.GREY_100,
+                border_radius=10,
+                width=400
+            )
+        ], horizontal_alignment="center")
+
         page.add(
             ft.Column([
                 ft.Row([
                     ft.IconButton(ft.Icons.LOGOUT, on_click=lambda e: show_login()),
                     ft.Text(f"Merchant: {state['merchant_id']}", size=16, weight="bold"),
                 ], alignment="spaceBetween"),
+                
                 ft.Divider(),
-                ft.Text("Scan Code", size=20),
-                code_input,
-                ft.ElevatedButton("Redeem", on_click=handle_redeem, width=400, height=50, bgcolor="orange", color="white"),
-                ft.Container(
-                    content=result_text,
-                    padding=20,
-                    bgcolor=ft.Colors.GREY_100,
-                    border_radius=10,
-                    width=400
-                )
-            ], horizontal_alignment="center")
+                
+                action_area
+            ], horizontal_alignment="stretch")
         )
         page.update()
 
