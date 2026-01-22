@@ -1,4 +1,5 @@
 import random
+import re
 from models.household import Household
 from storage.household_store import HouseholdStore
 
@@ -19,32 +20,37 @@ class HouseholdService:
         for h in households:
             self.households_by_id[h.household_id] = h
 
-    def _generate_household_id(self) -> str:
+    def register_household(self, household_id: str, postal_code: str, unit_number: str) -> Household:
         """
-        Generate unique ID: H + 6 digits (e.g., H123456).
-        Ensures no collisions.
+        Register a new household with strict format validation.
         """
-        while True:
-            candidate = f"H{random.randint(100000, 999999)}"
-            if candidate not in self.households_by_id:
-                return candidate
+        # 1. Validate Inputs exist
+        if not household_id or not str(household_id).strip():
+            raise ValueError("Household ID is required.")
+        
+        postal = str(postal_code).strip()
+        unit = str(unit_number).strip()
 
-    def register_household(self, address: str) -> Household:
-        """
-        Register a new household.
-        1. Validate address.
-        2. Generate ID.
-        3. Assign full voucher entitlement ($800).
-        4. Persist to storage.
-        """
-        if not address or not str(address).strip():
-            raise ValueError("Address is required.")
+        if not postal:
+            raise ValueError("Postal Code is required.")
+        if not unit:
+            raise ValueError("Unit Number is required.")
 
-        h_id = self._generate_household_id()
+        # 2. STRICT FORMAT VALIDATION
+        # Postal Code: Must be exactly 6 digits
+        if not re.match(r"^\d{6}$", postal):
+            raise ValueError("Invalid Postal Code. Must be exactly 6 digits (e.g. 560456).")
 
-        # Business Logic: Entitlement Calculation
-        # May 2025 ($500) + Jan 2026 ($300)
-        # Breakdown: 80x$2, 32x$5, 45x$10
+        # Unit Number: Must follow #Floor-Unit format (e.g. #06-03)
+        if not re.match(r"^#\d{1,3}-\d{1,5}$", unit):
+            raise ValueError("Invalid Unit Number. Must be in format #06-03 (Start with #).")
+
+        # 3. Check for Duplicates
+        h_id = str(household_id).strip()
+        if h_id in self.households_by_id:
+            raise ValueError("Household ID already exists.")
+
+        # 4. Create Household
         initial_vouchers = {
             "2": 80,
             "5": 32,
@@ -53,30 +59,23 @@ class HouseholdService:
 
         household = Household(
             household_id=h_id,
-            address=str(address).strip(),
+            postal_code=postal,
+            unit_number=unit,
             balance=800,
             vouchers=initial_vouchers,
             link=f"http://cdc.gov.sg/claim/{h_id}"
         )
 
-        # Persist to disk and update memory
+        # 5. Save
         self.household_store.save(household)
         self.households_by_id[h_id] = household
 
         return household
 
     def get_household(self, household_id: str) -> Household:
-        """
-        Helper method to retrieve a household object by ID.
-        Returns None if not found.
-        """
         return self.households_by_id.get(household_id)
 
     def deduct_balance(self, household_id: str, amount: int) -> None:
-        """
-        Deducts balance from a household and saves the change to JSON.
-        Raises ValueError if funds are insufficient.
-        """
         household = self.get_household(household_id)
         if not household:
             raise ValueError("Household not found")
@@ -84,8 +83,5 @@ class HouseholdService:
         if household.balance < amount:
             raise ValueError("Insufficient balance")
 
-        # Update Memory
         household.balance -= amount
-        
-        # Persist to Disk immediately
         self.household_store.save(household)
