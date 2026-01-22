@@ -66,8 +66,17 @@ def create_app() -> Flask:
     @app.post("/api/households")
     def register_household():
         payload = request.get_json(silent=True) or {}
+        
+        h_id = payload.get("household_id")
+        postal = payload.get("postal_code")
+        unit = payload.get("unit_number")
+
         try:
-            household = household_service.register_household(payload.get("address"))
+            household = household_service.register_household(
+                household_id=h_id,
+                postal_code=postal,
+                unit_number=unit
+            )
             return jsonify({"status": "success", "link": household.link}), 201
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
