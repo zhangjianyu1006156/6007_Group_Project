@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 22 15:23:57 2026
-
-@author: richardfeng
-"""
-
-# storage/counter_store.py
 import json
 from pathlib import Path
 

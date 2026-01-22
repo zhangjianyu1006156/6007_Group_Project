@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan 22 15:26:52 2026
-
-@author: richardfeng
-"""
-
-# storage/redemption_store.py
 import csv
 from datetime import datetime
 from pathlib import Path
