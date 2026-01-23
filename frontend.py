@@ -6,7 +6,7 @@ import re
 API_BASE_URL = "http://127.0.0.1:5000/api"
 
 def main(page: ft.Page):
-    page.title = "CDC Voucher App"
+    page.title = "CDC Voucher System"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.window_width = 400
     page.window_height = 800
@@ -126,7 +126,7 @@ def main(page: ft.Page):
                 state["selected"] = {}
                 show_dashboard()
             else:
-                h_error_text.value = "Invalid Household ID."
+                h_error_text.value = "Invalid Household ID"
                 page.update()
 
         def login_merchant(e):
@@ -142,7 +142,7 @@ def main(page: ft.Page):
                 state["merchant_id"] = m_id
                 show_merchant_view()
             else:
-                m_error_text.value = "Invalid Merchant ID."
+                m_error_text.value = "Invalid Merchant ID"
                 page.update()
 
         h_id_input = ft.TextField(label="Household ID", hint_text="Enter ID (e.g. H123...)")
@@ -150,7 +150,7 @@ def main(page: ft.Page):
 
         page.add(
             ft.Column([
-                ft.Row([ft.Text("CDC Voucher App", size=30, weight="bold", color="teal")], alignment="center"),
+                ft.Row([ft.Text("CDC Voucher System", size=30, weight="bold", color="teal")], alignment="center"),
                 ft.Divider(),
                 
                 # Household Section
@@ -210,7 +210,7 @@ def main(page: ft.Page):
                                 bgcolor=ft.Colors.BLUE_50,
                                 border_radius=5
                             ),
-                            ft.Text("(Anyone with this link can redeem vouchers)", italic=True, size=12),
+                            ft.Text("(Anyone with this link can redeem vouchers)", italic=False, size=12),
                             ft.Divider(),
                             
                             ft.ElevatedButton("Go to Login", on_click=lambda e: show_login())
@@ -428,7 +428,7 @@ def main(page: ft.Page):
                     padding=30, border=ft.border.all(2, "teal"), border_radius=10,
                     alignment=ft.alignment.center
                 ),
-                ft.Text("Valid for 10 minutes", color="red", italic=True),
+                ft.Text("Valid for 10 minutes", color="red", italic=False),
             ], horizontal_alignment="center", alignment="center")
         )
         page.update()
@@ -451,7 +451,7 @@ def main(page: ft.Page):
             page.update()
 
         action_area = ft.Column([
-            ft.Text("Scan Code", size=20),
+            ft.Text("Enter Code", size=20),
             code_input,
             ft.ElevatedButton("Redeem", on_click=handle_redeem, width=400, height=50, bgcolor="orange", color="white"),
             ft.Container(
