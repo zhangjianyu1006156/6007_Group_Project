@@ -6,7 +6,7 @@ import re
 API_BASE_URL = "http://127.0.0.1:5000/api"
 
 def main(page: ft.Page):
-    page.title = "CDC Voucher System"
+    page.title = "CDC Voucher App"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.window_width = 400
     page.window_height = 800
@@ -126,7 +126,7 @@ def main(page: ft.Page):
                 state["selected"] = {}
                 show_dashboard()
             else:
-                h_error_text.value = "Invalid Household ID"
+                h_error_text.value = "Invalid Household ID. Please register first."
                 page.update()
 
         def login_merchant(e):
@@ -142,7 +142,7 @@ def main(page: ft.Page):
                 state["merchant_id"] = m_id
                 show_merchant_view()
             else:
-                m_error_text.value = "Invalid Merchant ID"
+                m_error_text.value = "Invalid Merchant ID."
                 page.update()
 
         h_id_input = ft.TextField(label="Household ID", hint_text="Enter ID (e.g. H123...)")
@@ -150,25 +150,25 @@ def main(page: ft.Page):
 
         page.add(
             ft.Column([
-                ft.Row([ft.Text("CDC Voucher System", size=30, weight="bold", color="teal")], alignment="center"),
+                ft.Row([ft.Text("CDC Voucher App", size=30, weight="bold", color="teal")], alignment=ft.MainAxisAlignment.CENTER),
                 ft.Divider(),
                 
                 # Household Section
                 ft.Text("Residents", size=20, weight="bold"),
                 h_id_input,
-                ft.Row([ft.ElevatedButton("Login", on_click=login_household, width=360)], alignment="center"),
-                ft.Row([ft.TextButton("No Account? Register Household", on_click=lambda e: show_register_household())], alignment="center"),
-                ft.Row([h_error_text], alignment="center"),
+                ft.Row([ft.Button("Login", on_click=login_household, width=360)], alignment=ft.MainAxisAlignment.CENTER),
+                ft.Row([ft.TextButton("No Account? Register Household", on_click=lambda e: show_register_household())], alignment=ft.MainAxisAlignment.CENTER),
+                ft.Row([h_error_text], alignment=ft.MainAxisAlignment.CENTER),
                 
                 ft.Divider(),
                 
                 # Merchant Section
                 ft.Text("Merchants", size=20, weight="bold"),
                 m_id_input,
-                ft.Row([ft.ElevatedButton("Login", on_click=login_merchant, width=360)], alignment="center"),
-                ft.Row([ft.TextButton("New Business? Register Merchant", on_click=lambda e: show_register_merchant())], alignment="center"),
-                ft.Row([m_error_text], alignment="center"),
-            ], spacing=15, horizontal_alignment="stretch")
+                ft.Row([ft.Button("Login", on_click=login_merchant, width=360)], alignment=ft.MainAxisAlignment.CENTER),
+                ft.Row([ft.TextButton("New Business? Register Merchant", on_click=lambda e: show_register_merchant())], alignment=ft.MainAxisAlignment.CENTER),
+                ft.Row([m_error_text], alignment=ft.MainAxisAlignment.CENTER),
+            ], spacing=15, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         )
         page.update()
 
@@ -180,12 +180,12 @@ def main(page: ft.Page):
         postal_field = ft.TextField(label="Postal Code (e.g. 123456)")
         unit_field = ft.TextField(label="Unit Number (e.g. #06-03)")
         
-        result_display = ft.Column()
+        result_display = ft.Column(horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
         def handle_submit(e):
             if not re.match(r"^H\d{6}$", id_field.value):
                 result_display.controls.clear()
-                result_display.controls.append(ft.Text("Invalid Format. ID must start with 'H' followed by 6 numbers (e.g. H123456)", color="red"))
+                result_display.controls.append(ft.Text("Invalid Format. ID must start with 'H' followed by 6 digits (e.g. H123456)", color="red"))
                 page.update()
                 return
 
@@ -208,14 +208,15 @@ def main(page: ft.Page):
                                 content=ft.Text(link, color="blue", size=18, weight="bold", selectable=True),
                                 padding=10,
                                 bgcolor=ft.Colors.BLUE_50,
+                                border=ft.Border.all(1, "green"),
                                 border_radius=5
                             ),
-                            ft.Text("(Anyone with this link can redeem vouchers)", italic=False, size=12),
+                            ft.Text("(Anyone with this link can redeem vouchers)", italic=True, size=12),
                             ft.Divider(),
                             
-                            ft.ElevatedButton("Go to Login", on_click=lambda e: show_login())
-                        ], horizontal_alignment="center"),
-                        padding=20, border=ft.border.all(1, "green"), border_radius=10
+                            ft.Button("Go to Login", on_click=lambda e: show_login())
+                        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                        padding=20, border=ft.Border.all(1, "green"), border_radius=10
                     )
                 )
             else:
@@ -224,8 +225,7 @@ def main(page: ft.Page):
 
         page.add(
             ft.Column([
-                # Back Button in a Row to prevent it from stretching
-                ft.Row([ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda e: show_login())], alignment="start"),
+                ft.Row([ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda e: show_login())], alignment=ft.MainAxisAlignment.START),
                 
                 ft.Text("Register Household", size=25, weight="bold"),
                 ft.Text("Enter your details to claim vouchers."),
@@ -234,9 +234,9 @@ def main(page: ft.Page):
                 postal_field,
                 unit_field,
                 
-                ft.Row([ft.ElevatedButton("Register Now", on_click=handle_submit, bgcolor="teal", color="white")], alignment="center"),
+                ft.Row([ft.Button("Register Now", on_click=handle_submit, bgcolor="teal", color="white")], alignment=ft.MainAxisAlignment.CENTER),
                 result_display
-            ], horizontal_alignment="stretch")
+            ], horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         )
         page.update()
 
@@ -265,7 +265,7 @@ def main(page: ft.Page):
         acc_num = ft.TextField(label="Account Number")
         holder = ft.TextField(label="Account Holder Name")
 
-        result_display = ft.Column()
+        result_display = ft.Column(horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
         def handle_submit(e):
             data = {
@@ -289,9 +289,9 @@ def main(page: ft.Page):
                             ft.Text("Welcome Aboard!", color="blue", weight="bold"),
                             ft.Text("Your Merchant ID is:", size=16),
                             ft.Text(m_id, size=40, weight="bold", selectable=True),
-                            ft.ElevatedButton("Go to Login", on_click=lambda e: show_login())
-                        ], horizontal_alignment="center"),
-                        padding=20, border=ft.border.all(1, "blue"), border_radius=10
+                            ft.Button("Go to Login", on_click=lambda e: show_login())
+                        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                        padding=20, border=ft.Border.all(1, "blue"), border_radius=10
                     )
                 )
             else:
@@ -300,8 +300,7 @@ def main(page: ft.Page):
 
         page.add(
             ft.Column([
-                # Back Button in a Row to prevent it from stretching
-                ft.Row([ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda e: show_login())], alignment="start"),
+                ft.Row([ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda e: show_login())], alignment=ft.MainAxisAlignment.START),
                 
                 ft.Text("Merchant Sign-Up", size=25, weight="bold"),
                 
@@ -309,9 +308,9 @@ def main(page: ft.Page):
                 ft.Row([bank_code, branch_code]),
                 acc_num, holder,
                 
-                ft.Row([ft.ElevatedButton("Register Now", on_click=handle_submit, bgcolor="teal", color="white")], alignment="center"),
+                ft.Row([ft.Button("Register Now", on_click=handle_submit, bgcolor="teal", color="white")], alignment=ft.MainAxisAlignment.CENTER),
                 result_display
-            ], horizontal_alignment="stretch")
+            ], horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         )
         page.update()
 
@@ -364,7 +363,8 @@ def main(page: ft.Page):
                     ft.Row([
                         ft.Container(
                             content=ft.Text(f"${denom}", color="white", weight="bold"),
-                            bgcolor="teal", padding=10, border_radius=5, width=60, alignment=ft.alignment.center
+                            bgcolor="teal", padding=10, border_radius=5, width=60, 
+                            alignment=ft.Alignment(0, 0)
                         ),
                         ft.Column([
                             ft.Text(f"${denom} Voucher", weight="bold"),
@@ -373,7 +373,7 @@ def main(page: ft.Page):
                         ft.IconButton(ft.Icons.REMOVE, on_click=lambda e, d=denom: modify_selection(d, -1)),
                         counters[denom],
                         ft.IconButton(ft.Icons.ADD, on_click=lambda e, d=denom: modify_selection(d, 1)),
-                    ], alignment="spaceBetween")
+                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
                 )
 
         total_text = ft.Text("Total Selected: $0", size=20, weight="bold", color="green")
@@ -387,18 +387,18 @@ def main(page: ft.Page):
                 ]),
                 bgcolor="teal", padding=20, border_radius=10, width=400
             )
-        ], alignment="center")
+        ], alignment=ft.MainAxisAlignment.CENTER)
 
         generate_btn = ft.Row([
-            ft.ElevatedButton("Generate Code", on_click=handle_generate_code, width=400, height=50)
-        ], alignment="center")
+            ft.Button("Generate Code", on_click=handle_generate_code, width=400, height=50)
+        ], alignment=ft.MainAxisAlignment.CENTER)
 
         page.add(
             ft.Column([
                 ft.Row([
                     ft.IconButton(ft.Icons.LOGOUT, on_click=lambda e: show_login()),
                     ft.Text("My Wallet", size=20, weight="bold"),
-                ], alignment="spaceBetween"),
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 
                 wallet_box,
                 
@@ -409,9 +409,9 @@ def main(page: ft.Page):
                 
                 ft.Divider(),
                 
-                ft.Row([total_text], alignment="center"),
+                ft.Row([total_text], alignment=ft.MainAxisAlignment.CENTER),
                 generate_btn
-            ], horizontal_alignment="stretch")
+            ], horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         )
         page.update()
 
@@ -425,11 +425,11 @@ def main(page: ft.Page):
                 ft.Text("Show to Merchant", size=20),
                 ft.Container(
                     content=ft.Text(code, size=60, weight="bold"),
-                    padding=30, border=ft.border.all(2, "teal"), border_radius=10,
-                    alignment=ft.alignment.center
+                    padding=30, border=ft.Border.all(2, "teal"), border_radius=10,
+                    alignment=ft.Alignment(0, 0)
                 ),
-                ft.Text("Valid for 10 minutes", color="red", italic=False),
-            ], horizontal_alignment="center", alignment="center")
+                ft.Text("Valid for 10 minutes", color="red", italic=True),
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, alignment=ft.MainAxisAlignment.CENTER)
         )
         page.update()
 
@@ -451,9 +451,9 @@ def main(page: ft.Page):
             page.update()
 
         action_area = ft.Column([
-            ft.Text("Enter Code", size=20),
+            ft.Text("Scan Code", size=20),
             code_input,
-            ft.ElevatedButton("Redeem", on_click=handle_redeem, width=400, height=50, bgcolor="orange", color="white"),
+            ft.Button("Redeem", on_click=handle_redeem, width=400, height=50, bgcolor="orange", color="white"),
             ft.Container(
                 content=result_text,
                 padding=20,
@@ -461,23 +461,23 @@ def main(page: ft.Page):
                 border_radius=10,
                 width=400
             )
-        ], horizontal_alignment="center")
+        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
         page.add(
             ft.Column([
                 ft.Row([
                     ft.IconButton(ft.Icons.LOGOUT, on_click=lambda e: show_login()),
                     ft.Text(f"Merchant: {state['merchant_id']}", size=16, weight="bold"),
-                ], alignment="spaceBetween"),
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 
                 ft.Divider(),
                 
                 action_area
-            ], horizontal_alignment="stretch")
+            ], horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         )
         page.update()
 
     show_login()
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    ft.run(main)
