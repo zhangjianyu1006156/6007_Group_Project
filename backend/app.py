@@ -58,7 +58,13 @@ def create_app() -> Flask:
         payload = request.get_json(silent=True) or {}
         try:
             merchant = merchant_service.register_merchant(payload)
-            return jsonify({"status": "success", "merchant_id": merchant.merchant_id}), 201
+            return jsonify({
+                "status": "success",
+                "merchant_id": merchant.merchant_id,
+                "merchant_name": merchant.merchant_name,
+                "status_value": merchant.status
+            }), 201
+
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
@@ -85,7 +91,12 @@ def create_app() -> Flask:
                 postal_code=postal,
                 unit_number=unit
             )
-            return jsonify({"status": "success", "link": household.link}), 201
+            return jsonify({
+                "status": "success",
+                "household_id": household.household_id,
+                "link": household.link
+            }), 201
+
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
