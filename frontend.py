@@ -183,9 +183,9 @@ def main(page: ft.Page):
         result_display = ft.Column()
 
         def handle_submit(e):
-            if not re.match(r"^H\d+$", id_field.value):
+            if not re.match(r"^H\d{6}$", id_field.value):
                 result_display.controls.clear()
-                result_display.controls.append(ft.Text("Invalid Format. ID must start with 'H' followed by numbers (e.g. H123456)", color="red"))
+                result_display.controls.append(ft.Text("Invalid Format. ID must start with 'H' followed by 6 numbers (e.g. H123456)", color="red"))
                 page.update()
                 return
 
