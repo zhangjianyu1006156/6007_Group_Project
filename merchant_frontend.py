@@ -1,7 +1,8 @@
 import flet as ft
 import requests
+import csv
+import os
 
-# Configuration
 API_BASE_URL = "http://127.0.0.1:5000/api"
 
 def main(page: ft.Page):
@@ -12,11 +13,9 @@ def main(page: ft.Page):
     page.padding = 20
     page.scroll = "auto"
 
-    # ==========================================
-    # STATE
-    # ==========================================
     state = {
-        "merchant_id": ""
+        "merchant_id": "",
+        "banks": {} 
     }
 
     # ==========================================
@@ -56,22 +55,20 @@ def main(page: ft.Page):
     # SCREENS
     # ==========================================
 
-    # --- 1. LOGIN HOME ---
     def show_login():
         page.clean()
         m_error_text = ft.Text("", color="red", size=14)
 
         def login_merchant(e):
             m_error_text.value = ""
-            m_id = m_id_input.value
-            if not m_id:
+            if not m_id_input.value:
                 m_error_text.value = "Please enter a Merchant ID"
                 page.update()
                 return
             
-            success, data = api_verify_merchant(m_id)
+            success, data = api_verify_merchant(m_id_input.value)
             if success:
-                state["merchant_id"] = m_id
+                state["merchant_id"] = m_id_input.value
                 show_merchant_view()
             else:
                 m_error_text.value = "Invalid Merchant ID."
@@ -83,7 +80,6 @@ def main(page: ft.Page):
             ft.Column([
                 ft.Row([ft.Text("CDC Merchants", size=30, weight="bold", color="teal")], alignment=ft.MainAxisAlignment.CENTER),
                 ft.Divider(),
-                
                 ft.Text("Login to redeem vouchers", size=16),
                 m_id_input,
                 ft.Row([ft.Button("Login", on_click=login_merchant, width=360)], alignment=ft.MainAxisAlignment.CENTER),
@@ -93,43 +89,71 @@ def main(page: ft.Page):
         )
         page.update()
 
-    # --- 2. REGISTER MERCHANT ---
     def show_register_merchant():
         page.clean()
+
+        # Only load if we haven't already
+        if not state["banks"]:
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            csv_path = os.path.join(current_dir, "backend", "storage", "data", "BankCode.csv")
+            
+            if os.path.exists(csv_path):
+                try:
+                    with open(csv_path, mode='r', encoding='utf-8-sig') as f:
+                        reader = csv.DictReader(f)
+                        for row in reader:
+                            if "Bank_Name" in row:
+                                state["banks"][row["Bank_Name"]] = {
+                                    "code": row["Bank_Code"],
+                                    "branch": row["Branch_Code"]
+                                }
+                except Exception:
+                    pass 
 
         name = ft.TextField(label="Business Name")
         uen = ft.TextField(label="UEN (Business Reg No)")
         
-        bank_name = ft.Dropdown(label="Bank Name", options=[
-            ft.dropdown.Option("DBS Bank Ltd"),
-            ft.dropdown.Option("OCBC Bank"),
-            ft.dropdown.Option("UOB Bank"),
-            ft.dropdown.Option("Maybank Singapore"),
-            ft.dropdown.Option("Standard Chartered Bank"),
-            ft.dropdown.Option("HSBC Singapore"),
-            ft.dropdown.Option("POSB Bank"),
-            ft.dropdown.Option("Citibank Singapore"),
-            ft.dropdown.Option("RHB Bank Berhad"),
-            ft.dropdown.Option("Bank of China"),
-        ])
+        bank_items = [ft.dropdown.Option(b) for b in state["banks"].keys()]
         
-        bank_code = ft.TextField(label="Bank Code", hint_text="e.g. 7171", expand=True)
-        branch_code = ft.TextField(label="Branch Code", hint_text="e.g. 001", expand=True)
+        bank_name_dropdown = ft.Dropdown(
+            label="Bank Name", 
+            options=bank_items
+        )
+        
         acc_num = ft.TextField(label="Account Number")
         holder = ft.TextField(label="Account Holder Name")
 
         result_display = ft.Column(horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
         def handle_submit(e):
+            if not (uen.value.isdigit() and len(uen.value) in [9, 10]):
+                result_display.controls.clear()
+                result_display.controls.append(ft.Text("UEN must be 9 or 10 digits", color="red"))
+                page.update()
+                return
+
+            selected_bank = bank_name_dropdown.value
+            if not selected_bank or selected_bank not in state["banks"]:
+                 result_display.controls.clear()
+                 result_display.controls.append(ft.Text("Please select a valid bank.", color="red"))
+                 page.update()
+                 return
+            
+            # Lookup codes silently
+            bank_info = state["banks"][selected_bank]
+            hidden_bank_code = bank_info["code"]
+            hidden_branch_code = bank_info["branch"]
+
             data = {
                 "merchant_name": name.value,
                 "uen": uen.value,
-                "bank_name": bank_name.value,
-                "bank_code": bank_code.value,
-                "branch_code": branch_code.value,
+                "bank_name": selected_bank,
+                "bank_code": hidden_bank_code,
+                "branch_code": hidden_branch_code,
                 "account_number": acc_num.value,
                 "account_holder_name": holder.value
             }
+            
             success, res = api_register_merchant(data)
             result_display.controls.clear()
             
@@ -154,20 +178,15 @@ def main(page: ft.Page):
         page.add(
             ft.Column([
                 ft.Row([ft.IconButton(ft.Icons.ARROW_BACK, on_click=lambda e: show_login())], alignment=ft.MainAxisAlignment.START),
-                
                 ft.Text("Merchant Sign-Up", size=25, weight="bold"),
-                
-                name, uen, bank_name,
-                ft.Row([bank_code, branch_code]),
+                name, uen, bank_name_dropdown,
                 acc_num, holder,
-                
                 ft.Row([ft.Button("Register Now", on_click=handle_submit, bgcolor="teal", color="white")], alignment=ft.MainAxisAlignment.CENTER),
                 result_display
             ], horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         )
         page.update()
 
-    # --- 3. MERCHANT DASHBOARD ---
     def show_merchant_view():
         page.clean()
         code_input = ft.TextField(label="Voucher Code", text_align="center", text_size=24)
@@ -203,9 +222,7 @@ def main(page: ft.Page):
                     ft.IconButton(ft.Icons.LOGOUT, on_click=lambda e: show_login()),
                     ft.Text(f"Merchant: {state['merchant_id']}", size=16, weight="bold"),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                
                 ft.Divider(),
-                
                 action_area
             ], horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
         )

@@ -6,7 +6,7 @@ import re
 API_BASE_URL = "http://127.0.0.1:5000/api"
 
 def main(page: ft.Page):
-    page.title = "CDC Voucher App - Residents"
+    page.title = "CDC Voucher App - Households"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.window_width = 400
     page.window_height = 800
@@ -100,7 +100,7 @@ def main(page: ft.Page):
 
         page.add(
             ft.Column([
-                ft.Row([ft.Text("CDC Residents", size=30, weight="bold", color="teal")], alignment=ft.MainAxisAlignment.CENTER),
+                ft.Row([ft.Text("CDC Households", size=30, weight="bold", color="teal")], alignment=ft.MainAxisAlignment.CENTER),
                 ft.Divider(),
                 
                 ft.Text("Login to access vouchers", size=16),
@@ -118,7 +118,7 @@ def main(page: ft.Page):
         
         id_field = ft.TextField(label="Household ID (e.g. H123456)")
         postal_field = ft.TextField(label="Postal Code (e.g. 123456)")
-        unit_field = ft.TextField(label="Unit Number (e.g. #06-03)")
+        unit_field = ft.TextField(label="Unit Number (e.g. #01-02)")
         
         result_display = ft.Column(horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
