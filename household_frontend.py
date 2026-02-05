@@ -116,7 +116,7 @@ def main(page: ft.Page):
     def show_register_household():
         page.clean()
         
-        id_field = ft.TextField(label="Household ID (e.g. H123456)")
+        id_field = ft.TextField(label="Household ID (e.g. H52298800781)")
         postal_field = ft.TextField(label="Postal Code (e.g. 560456)")
         unit_field = ft.TextField(label="Unit Number (e.g. #08-02)")
         
