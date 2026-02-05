@@ -27,6 +27,7 @@ class HouseholdService:
         if not household_id or not str(household_id).strip():
             raise ValueError("Household ID is required.")
         
+        h_id = str(household_id).strip()
         postal = str(postal_code).strip()
         unit = str(unit_number).strip()
 
@@ -36,6 +37,9 @@ class HouseholdService:
             raise ValueError("Unit Number is required.")
 
         # 2. Format Validation
+        if not re.match(r"^H\d{11}$", h_id):
+            raise ValueError("Invalid Household ID. Must be 'H' followed by 11 digits.")
+        
         if not re.match(r"^\d{6}$", postal):
             raise ValueError("Invalid Postal Code. Must be exactly 6 digits (e.g. 560456).")
 
