@@ -41,9 +41,9 @@ class HouseholdService:
         if not re.match(r"^\d{6}$", postal):
             raise ValueError("Invalid Postal Code. Must be exactly 6 digits (e.g. 560456).")
 
-        # Unit Number: Must follow #Floor-Unit format (e.g. #06-03)
+        # Unit Number: Must follow #Floor-Unit format (e.g. #08-02)
         if not re.match(r"^#\d{1,3}-\d{1,5}$", unit):
-            raise ValueError("Invalid Unit Number. Must be in format #06-03 (Start with #).")
+            raise ValueError("Invalid Unit Number. Must be in format #08-02 (Start with #).")
 
         # 3. Check for Duplicates
         h_id = str(household_id).strip()
@@ -57,11 +57,13 @@ class HouseholdService:
             "10": 45
         }
 
+        calculated_balance = sum(int(denom) * qty for denom, qty in initial_vouchers.items())
+
         household = Household(
             household_id=h_id,
             postal_code=postal,
             unit_number=unit,
-            balance=800,
+            balance=calculated_balance,
             vouchers=initial_vouchers,
             link=f"http://cdc.gov.sg/claim/{h_id}"
         )
