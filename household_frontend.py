@@ -123,9 +123,9 @@ def main(page: ft.Page):
         result_display = ft.Column(horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
         def handle_submit(e):
-            if not re.match(r"^H\d{6}$", id_field.value):
+            if not re.match(r"^H\d{11}$", id_field.value):
                 result_display.controls.clear()
-                result_display.controls.append(ft.Text("Invalid Format. ID must start with 'H' followed by 6 digits (e.g. H123456)", color="red"))
+                result_display.controls.append(ft.Text("Invalid Format. ID must start with 'H' followed by 11 digits (e.g. H52298800781)", color="red"))
                 page.update()
                 return
 
