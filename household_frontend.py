@@ -117,8 +117,8 @@ def main(page: ft.Page):
         page.clean()
         
         id_field = ft.TextField(label="Household ID (e.g. H123456)")
-        postal_field = ft.TextField(label="Postal Code (e.g. 123456)")
-        unit_field = ft.TextField(label="Unit Number (e.g. #01-02)")
+        postal_field = ft.TextField(label="Postal Code (e.g. 560456)")
+        unit_field = ft.TextField(label="Unit Number (e.g. #08-02)")
         
         result_display = ft.Column(horizontal_alignment=ft.CrossAxisAlignment.CENTER)
 
