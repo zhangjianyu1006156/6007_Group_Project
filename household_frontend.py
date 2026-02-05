@@ -295,6 +295,11 @@ def main(page: ft.Page):
                     alignment=ft.Alignment(0, 0)
                 ),
                 ft.Text("Valid for 10 minutes", color="red", italic=True),
+
+                ft.Container(height=30),
+
+                ft.OutlinedButton("Logout", on_click=lambda e: show_login(), width=250)
+
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, alignment=ft.MainAxisAlignment.CENTER)
         )
         page.update()
