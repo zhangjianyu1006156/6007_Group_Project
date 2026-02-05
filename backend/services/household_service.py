@@ -11,7 +11,6 @@ class HouseholdService:
     def __init__(self, household_store: HouseholdStore):
         self.household_store = household_store
         
-        # In-memory index for O(1) lookups
         self.households_by_id: dict[str, Household] = {}
 
     def bootstrap_from_file(self) -> None:
@@ -36,12 +35,10 @@ class HouseholdService:
         if not unit:
             raise ValueError("Unit Number is required.")
 
-        # 2. STRICT FORMAT VALIDATION
-        # Postal Code: Must be exactly 6 digits
+        # 2. Format Validation
         if not re.match(r"^\d{6}$", postal):
             raise ValueError("Invalid Postal Code. Must be exactly 6 digits (e.g. 560456).")
 
-        # Unit Number: Must follow #Floor-Unit format (e.g. #08-02)
         if not re.match(r"^#\d{1,3}-\d{1,5}$", unit):
             raise ValueError("Invalid Unit Number. Must be in format #08-02 (Start with #).")
 
